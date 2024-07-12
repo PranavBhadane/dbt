@@ -1,15 +1,61 @@
-..first make student class in module- add all the columns- constructor, no id in add-public Students(){}public int CompareTo(Students? other){return this.Status.CompareTo(other.Status);}
-..make CollectionContext in repositories- :dbContext-public DbSet<Student>Students get set- protected override void onconfi-{string connectedsystem="server,port3306,user,pas,database";-optionsBuilder.useMySql.protected override onmodelcreating{base-modelBilder.Entity<Student>(Entity =>{Entity.HasKey(p => p.id;Entity.property(p => p.__);});.HasConversion(v => v.ToDateTime(TimeOnly.MinValue),v => DateOnly.FromDateTime(v)).HasColumnType("Date"); modelBuilder.entity<Student>().ToTable("students");
-...make IStudentManager in repo- void Add(Student student);list<Student>getByStatus(string status);---
-.. make StudentManager in repo- :IStudentManager -public StudentManager(){}public void addStudent(Students student){using(var context=new CollectionContext()){context.Student.Add(student);context.SaveChanges();}}public List<Students> getAllStudents(){using (var context = new CollectionContext()){var stud = from s in context.Student select s;return stud.ToList();}}public List<Students> getByStatus(string status){using(var context = new CollectionContext()){var studs = from s in context.Student.Where(s => s.Status == status) select s;return studs.ToList<Students>();}}public Students getStudentById(int id){using( var context = new CollectionContext()){return context.Student.Find(id);}}public void removeStudent(int id){using(var context= new CollectionContext()){context.Student.Remove(context.Student.Find(id));context.SaveChanges();}}public List<Students> SortByStatus(){List<Students> studs = getAllStudents();studs.Sort();return studs;}public void updateStudent(Students student){using(var context=new CollectionContext()){var stud = context.Student.Find(student.Id);stud.Name= student.Name___;context.SaveChanges();}}
-.. make IProductService in Services-copy IManager- make ProductService-add constructor, do productManager.Add__(student); do return productManager.Get().
-..make studentController in controller-    public class StudentController : Controller{private IStudentService studentService;public StudentController(IStudentService studentService){this.studentService = studentService;}public IActionResult Index(){return View();}public IActionResult getAllStudents(){List<Students> students=studentService.getAllStudents();ViewData["alldata"]=students;return View();}[HttpGet]public IActionResult getStudent(){return View();}[HttpPost]public IActionResult getStudent(int id){Students stud=studentService.getStudentById(id);ViewData["onedata"]=stud;return View();}[HttpPost]public IActionResult addStudent(string name, string email, string mobile, string address, string admission_date, double fees, string status){DateOnly dt=DateOnly.Parse(admission_date);Students stud=new Students(name,email,mobile,address,dt,fees,status);studentService.addStudent(stud);return View();}[HttpPost]public IActionResult deleteStudent(int id){studentService.removeStudent(id);return RedirectToAction("Index", "Home");}}[HttpPost]public IActionResult updateStudent(int id,string name, string email, string mobile, string address, string admission_date, double fees, string status){DateOnly dt= DateOnly.Parse(admission_date);Students stud = new Students(id, name, email, mobile, address, dt, fees, status);studentService.updateStudent(stud);return RedirectToAction("Index", "Home");}public IActionResult sortByStatus(){List<Students> stud = studentService.SortByStatus();ViewData["sortdata"] = stud;return View();}
-...make Students in Views-do AddStudent.<form action="/Student/addStudent" method="post">Name:<input type="text" name="name" /><br /><input type="submit" name="Add Student" />
-...deleteStudent - <form action="/Student/deleteStudent" method="post">Enter the ID:<input type="number" name="id" /><button type="submit">Delete</button></form>
-...getAllStudent- @using StudentMgmnt.Models;@{List<Students> students = (List<Students>)ViewData["alldata"];<h1>All Students...</h1><ol>@{foreach(Students stud in students){<l1>@stud.Id__                                    </l1><br />}}</ol>}
-...getByStatus-@{<html><head><title>Students by Status</title></head><body><form action="/Student/getByStatus" method="post"><label for="studStatus">Enter the status</label><input type="text" id="studStatus" name="status"/><button type="submit">Get Student By Status</button></form>@{if(ViewData["statusdata"]!=null){List<Students> students = (List<Students>)ViewData["statusdata"];foreach(Students stud in students)
-{<ol><li>@stud.Id__</li></ol>}}}</body></html>}
-...getStudent-@using StudentMgmnt.Models;@{<html><head><title>Student Details</title></head><body><form action="/Student/getStudent" method="post"><label for="studId"> Enter the ID</label><input type="number" id="studId" name="id"/><button type="submit">Get Student Details</button></form>@{if (ViewData["onedata"] != null){var stud = (Students)ViewData["onedata"];<ul><li>Id:@stud.Id</li>__</ul>}}</body></html>}
-...sortByStatus-@using StudentMgmnt.Models;@{List<Students> students = (List<Students>)ViewData["sortdata"];<h1>Sorted List Of Students</h1><ol>@{foreach(Students stud in students){<li>@stud.Id__@stud.Status</li>}}</ol>}
-...updateStudent-<form action="/Student/updateStudent" method="post">Id:<input type="number" name="id" /><br /><input type="submit" name="Update Student" /></form>
-...cProgram-builder.Services.AddScoped<IStudentService, StudentService>();
+...make com.app.Entity-RailwyEntity-@Entity-@Table(name="")@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private long id;
+	@Column(name="name",nullable=false)
+	private String name;
+	@Enumerated(EnumType.STRING)
+	@Column(name="category")
+	private Category category;
+	@Column(name="start_time",nullable = false)
+	private String start_time;
+	@Column(name="end_time",nullable = false)
+	private String end_time;
+	@Column(name="Source",nullable = false)
+	private String source;
+	@Column(name="destintion",nullable = false)
+	private String destination;
+	@Column(name="station_code",nullable = false)
+	private String station_code;
+	@Column(name="distance",nullable = false)
+	private long distance;
+	@Column(name="frequency",nullable = false)
+	private long frequence;
+
+...com.app.Repository-RailwayRepo.interface, EXTEND JpaRepo<RailwayEntity,Long>
+{@Query("Select p from RailwayEntity p where p.category = :category")}
+...com.app.Service-RailwayService-
+	public String addRailway(RailwayEntity railway);
+	public String deleteById(Long Id);
+	public List<RailwayEntity> getAll();
+	public List<RailwayEntity> displayByCategory(Category category);
+...RailwayServiceImpl-Add RailwayService- @Service @Transactional
+{@Autowired
+	private RailwayRepo railwayRepo;
+	@Override
+	public String addRailway(RailwayEntity railway) {railwayRepo.save(railway);return "Added Successfully";}
+	@Override
+	public String deleteById(Long Id) {railwayRepo.deleteById(Id);return "Successfully deleted!!";}
+	@Override
+	public List<RailwayEntity> getAll() {return railwayRepo.findAll();}
+	@Override
+	public List<RailwayEntity> displayByCategory(Category category) {return railwayRepo.findByCategory(category);}
+...com.app.controller-RailwayController-@RestController@RequestMapping("/railway")
+@Autowired private RailwayService railwayservice;
+		
+		@PostMapping
+		public ResponseEntity<?> addRilway(@RequestBody RailwayEntity railway){
+		try{return ResponseEntity.status(HttpStatus.CREATED).body(railwayservice.addRailway(railway));}
+		catch(Exception e)
+		{System.out.println(e);return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());}}
+		@DeleteMapping("/{id}")
+		public ResponseEntity<?> deleteRailway(@PathVariable @Valid Long id){
+			try {return ResponseEntity.status(HttpStatus.ACCEPTED).body(railwayservice.deleteById(id));}
+			catch(Exception e)
+			{System.out.println(e);return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());}}
+		@GetMapping
+		public ResponseEntity<?> getAll(){try {return ResponseEntity.status(HttpStatus.ACCEPTED).body(railwayservice.getAll());}
+			catch(Exception e) {System.out.println(e);return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());}}
+@GetMapping("/{category}")public ResponseEntity<?> getByCategory(String category){try {Category ct = Category.valueOf(category.toUpperCase());
+				return ResponseEntity.status(HttpStatus.ACCEPTED).body(railwayservice.displayByCategory(ct));}
+			catch(Exception e)
+			{return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());}}
