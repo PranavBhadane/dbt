@@ -1,103 +1,43 @@
-.. db folder.. dbconnect.js
-const mysql=require("mysql2")
-var mysqlConnection=mysql.createConnection({host:'127.0.0.1',user:'root',password:'0722',database:'courses',port:3306})
-mysqlConnection.connect((err)=>{if(!err){console.log("Db connected!!")}
-else{console.log(err)}})
-module.exports=mysqlConnection;
+----tester class
 
-.. routes folder.. router.js
-const express=require("express")
-const myrouter=express.Router();
-const connection=require("../db/dbconnect")
+ArrayList<Student> std= new ArrayList<>();
+		try(Scanner sc = new Scanner(System.in) )
+		{
+			boolean exit=false;
+			while (!exit) {
+				try {
+					System.out.println("1.add"+"2.update"+"3.delete"+"4.display");
+					switch (sc.nextInt()) {
+					case 1:
+						Student student = validateInput(sc.next(),sc.next(),sc.nextInt(),sc.next());
+						std.add(student);
+						System.out.println("Student added");
+						break;
+					case 2:
+						for(Student s:std) {
+							System.out.println(s);
+						}
+						break;
 
-//get all courses
-myrouter.get("/courses",function(req,resp){
-    connection.query("select * from course",function(err,data,fields){
-        if(err){resp.status(500).send("Error Occured!!")}
-else{resp.status(200).render("display_course",{coursdata:data})}})})
+					default:
+						break;
+					}
+				}
+			catch(Exception e)
+				{
+				System.out.println(e.getMessage());
+				}
+			}
+		}
+-- validation class
 
-//empty form to add data
-myrouter.get("/addcourseform",function(req,resp){
-   resp.render("add_course")})
-
-//add course
-myrouter.post("/insertcourse",function(req,resp){
-    connection.query("insert into course values(?,?,?)",[req.body.cid,req.body.cname,req.body.qty],function(err,result){
- if(err){resp.status(500).send("Data not inserted!!")}
-else{if(result.affectedRows>0){resp.redirect("/courses")}}})})
-
-//delete course
-myrouter.get("/deletecourse/:id",function(req,resp){
-    console.log("Cid : ",req.params.id);
-    connection.query("delete from course where cid=?",[req.params.id],function(err,result){
-        if(err){resp.status(500).send("Data not found!!")}
-else{if(result.affectedRows>0){resp.redirect("/courses")}}})})
-
-//update firstly take id
-myrouter.get("/editcourse/:id",function(req,resp){
-    connection.query("select * from course where cid=?",[req.params.id],function(err,data){
-if(err){resp.status(500).send("Data not found!!")}
- else{if(data.length>0){resp.render("update_course",{cour:data[0]})}}})})
-
-//update actual data
-myrouter.post("/updatecourse",function(req,resp){
-    connection.query("update course set cname=?,qty=? where cid=?",[req.body.cname,req.body.qty,req.body.cid],function(err,result){
-        if(err){resp.status(500).send("Data not updated!!")}
-    else{resp.redirect("/courses")}})})
-module.exports=myrouter;
-
-..folder views..add_course.ejs..in body
-<form action="/insertcourse" method="post">
-        Course Id:<input type="text" name="cid" id="cid"><br>
-        Course Name:<input type="text" name="cname" id="cname"><br>
-        Course Quantity:<input type="text" name="qty" id="qty"><br>
-        <button type="submit" name="btn" id="btn">Add Course</button>
- </form>
-
-.. display_course.ejs.. in body
- <form action="/addcourseform">
-        <button type="submit" name="btnadd" id="add" value="add">Add New Course</button>
-    </form>
-
-    <table border="2">
-        <tr>
-            <th>Course Id</th>
-            <th>Course Name</th>
-            <th>Course Quantity</th>
-        </tr>
-        <% for(var i=0;i<coursdata.length;i++){%>
-            <tr>
-                <td><%=coursdata[i].cid%></td>
-                <td><%=coursdata[i].cname%></td>
-                <td><%=coursdata[i].qty%></td>
-                <td>
-                    <a href="deletecourse/<%=coursdata[i].cid%>">Delete</a>
-                    <a href="editcourse/<%=coursdata[i].cid%>">Edit</a>
-                </td>
-            </tr>
-        <%}%>
-    </table>
-
-.. update course.ejs.. in body
- <form action="/updatecourse" method="post">
-        Course Id:<input type="text" name="cid" id="cid" value="<%=cour.cid%>" readonly><br>
-        Course Name:<input type="text" name="cname" id="cname" value="<%=cour.cname%>"><br>
-        Course Quantity:<input type="text" name="qty" id="qty" value="<%=cour.qty%>"><br>
-        <button type="submit" name="btn" id="btn">Update Course</button>
- </form>
-
-..in main app.js
-const express=require("express")
-const app=express();
-const path=require("path")
-const routes=require("./routes/router")
-const bodyParser=require("body-parser")
-
-app.set("views",path.join(__dirname,"views"))
-app.set("view engine","ejs");
-
-app.use(bodyParser.urlencoded({extended:false}))
-app.use("/",routes)
-
-app.listen(3002,function(){console.log("Server started on port 3002")})
-module.exports=app;
+public static Student validateInput(String name, String subject, int marks, String date)
+	{
+		return new Student(name,subject,marks,parseDate(date));
+		
+	}
+	public static LocalDate parseDate(String date)
+	{
+		return LocalDate.parse(date);
+	}
+-- 
